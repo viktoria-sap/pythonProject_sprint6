@@ -1,5 +1,3 @@
-from time import sleep
-
 import allure
 import pytest
 
@@ -9,44 +7,24 @@ from constants import Urls
 
 
 class Test:
-    locators = [ScooterLocators.ORDER_BUTTON_UPPER, ScooterLocators.ORDER_BUTTON_LOWER]
 
-    @allure.title('Тест заказа самоката с переходом на главную')
-    @pytest.mark.parametrize('locator', locators)
+    @pytest.mark.parametrize('locator,',
+                             [ScooterLocators.ORDER_BUTTON_UPPER,
+                              ScooterLocators.ORDER_BUTTON_LOWER])
+    @allure.title('Тест заказа самоката')
     def test_fill_order_form(self, driver, locator):
         order_page = OrderPage(driver)
-        order_page.go_to_site(Urls.HOME_PAGE_URL)
-        order_page.find_element_located(ScooterLocators.COOKIE_BUTTON).click()
-        order_page.find_element_located(locator).click()
+        order_page.start_of_order(locator)
         order_page.fill_form_first_page()
-        order_page.find_element_located(ScooterLocators.NEXT_BUTTON).click()
         order_page.fill_form_second_page()
-        order_page.find_element_located(ScooterLocators.ORDER_BUTTON).click()
-        order_page.find_element_located(ScooterLocators.CONFIRM_BUTTON).click()
-        successful_header_text = order_page.find_element_located(ScooterLocators.SUCCESSFUL_TEXT).text
-        assert 'Заказ оформлен' in successful_header_text
-        order_page.find_element_located(ScooterLocators.VIEW_BUTTON).click()
-        order_page.find_element_located(ScooterLocators.CANCEL_ORDER_BUTTON)
-        order_page.find_element_located(ScooterLocators.LOGO_SCOOTER_BUTTON).click()
-        assert driver.current_url == Urls.HOME_PAGE_URL
-        assert "на пару дней" in order_page.find_element_located(ScooterLocators.HOME_HEADER).text
+        order_page.confirm_of_order()
+        assert 'Заказ оформлен' in order_page.successful_header_text
 
-    @allure.title('Тест заказа самоката с переходом на Дзен')
-    def test_fill_order_form_yandex_logo(self, driver):
+    @pytest.mark.parametrize('button, index, url',
+                             [(ScooterLocators.LOGO_SCOOTER_BUTTON, 0, Urls.HOME_PAGE_URL), (ScooterLocators.LOGO_YANDEX_BUTTON, 1, Urls.DZEN_PAGE_URL)])
+    @allure.title('Переход по логотипам')
+    def test_go_to_logo(self, driver, button, index, url):
         order_page = OrderPage(driver)
-        order_page.go_to_site(Urls.HOME_PAGE_URL)
-        order_page.find_element_located(ScooterLocators.COOKIE_BUTTON).click()
-        order_page.find_element_located(ScooterLocators.ORDER_BUTTON_LOWER).click()
-        order_page.fill_form_first_page()
-        order_page.find_element_located(ScooterLocators.NEXT_BUTTON).click()
-        order_page.fill_form_second_page()
-        order_page.find_element_located(ScooterLocators.ORDER_BUTTON).click()
-        order_page.find_element_located(ScooterLocators.CONFIRM_BUTTON).click()
-        successful_header_text = order_page.find_element_located(ScooterLocators.SUCCESSFUL_TEXT).text
-        assert 'Заказ оформлен' in successful_header_text
-        order_page.find_element_located(ScooterLocators.VIEW_BUTTON).click()
-        order_page.find_element_located(ScooterLocators.CANCEL_ORDER_BUTTON)
-        order_page.find_element_located(ScooterLocators.LOGO_YANDEX_BUTTON).click()
-        driver.switch_to.window(driver.window_handles[1])
-        sleep(5)
-        assert Urls.DZEN_PAGE_URL in driver.current_url
+        order_page.go_to_logo(button, index)
+        assert url in driver.current_url
+
